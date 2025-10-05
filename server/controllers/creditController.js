@@ -48,10 +48,12 @@ export const purchasePlan = async (req, res) => {
         const { planId } = req.body
         const userId = req.user._id
         const plan = plans.find(plan => plan._id === planId)
+        
         if (!plan) {
             return res.json({ success: false, message: 'Invalid plan' })
         }
-        // create new transaction
+        
+        // Create new transaction
         const transaction = await Transaction.create({
             userId: userId,
             planId: planId,
@@ -60,8 +62,9 @@ export const purchasePlan = async (req, res) => {
             isPaid: false
         })
 
-        const { origin } = req.headers;
-
+        // Fix: Get origin and remove trailing slash if present
+        let { origin } = req.headers;
+        origin = origin?.replace(/\/$/, '') || 'http://localhost:5173'; // Remove trailing slash
 
         const session = await stripe.checkout.sessions.create({
             line_items: [
@@ -77,15 +80,19 @@ export const purchasePlan = async (req, res) => {
                 },
             ],
             mode: 'payment',
-            success_url: `${origin}/loading`,
-            cancel_url: `${origin}`,
-            metadata: { transactionId: transaction._id.toString(), appId: 'quickgpt' },
+            success_url: `${origin}/loading`,  // Now correctly formatted
+            cancel_url: `${origin}/`,
+            metadata: { 
+                transactionId: transaction._id.toString(), 
+                appId: 'quickgpt' 
+            },
             expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
-
         });
+        
         res.json({ success: true, url: session.url })
 
     } catch (error) {
+        console.error("Purchase plan error:", error);
         res.json({ success: false, message: error.message })
     }
 }
