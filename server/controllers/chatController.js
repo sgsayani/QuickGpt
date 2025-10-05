@@ -25,15 +25,15 @@ export const createChat = async (req, res) => {
 // API controller for getting all chats
 
 export const getChats = async (req, res) => {
-    try{
-        const userId = req.user._id
-        const chats = await (await Chat.find({userId})).sort({updatedAt:-1})
-        res.json({success:true,chats})
-    }
-    catch(error){
-        res.json({success:false,message:error.message})
-    }
-}
+  try {
+    const userId = req.user._id;
+    const chats = await Chat.find({ userId }).sort({ updatedAt: -1 });
+    res.json({ success: true, chats });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+};
+
 
 
 // API controller for deleting a  chat
